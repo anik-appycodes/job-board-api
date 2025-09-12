@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { userService } from "../services/user.service.js";
 import { AppError } from "../middlewares/error.middleware.js";
 import { catchAsync } from "../helpers/api.helper.js";
+import type { Prisma } from "@prisma/client";
 
 export const getUsers = catchAsync(async (req: Request, res: Response) => {
   const users = await userService.getAllUsers();
@@ -12,7 +13,7 @@ export const getUserById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id) throw new AppError("User ID is required", 400);
 
-  const user = await userService.getUserById(parseInt(id));
+  const user = await userService.getUserById(Number(id));
   if (!user) throw new AppError("User not found", 404);
 
   res.json({ success: true, data: user });
@@ -28,8 +29,8 @@ export const addUser = catchAsync(async (req: Request, res: Response) => {
     name,
     email,
     role,
-    company_id,
-  });
+    company: company_id ? { connect: { id: company_id } } : undefined,
+  } as Prisma.UserCreateInput);
 
   res.status(201).json({ success: true, data: newUser });
 });
@@ -44,12 +45,12 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
     throw new AppError("At least one field is required to update", 400);
   }
 
-  const updatedUser = await userService.updateUser(parseInt(id), {
+  const updatedUser = await userService.updateUser(Number(id), {
     name,
     email,
     role,
-    company_id,
-  });
+    company: company_id ? { connect: { id: company_id } } : undefined,
+  } as Prisma.UserUpdateInput);
 
   if (!updatedUser) {
     throw new AppError("User not found", 404);
@@ -66,7 +67,7 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id) throw new AppError("User ID is required", 400);
 
-  const deletedUser = await userService.deleteUser(parseInt(id));
+  const deletedUser = await userService.deleteUser(Number(id));
   if (!deletedUser) {
     throw new AppError("User not found or already deleted", 404);
   }

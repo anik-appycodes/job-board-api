@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  location    String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  users       User[]
+  jobs        Job[]
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  role        Role
+  company_id  Int?
+  company     Company?  @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  jobs        Job[]     @relation("UserJobs")
+  applications Application[]
+}
+
+enum Role {
+  candidate
+  employer
+}
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  location    String?
+  salary_min  Int?
+  salary_max  Int?
+  tags        String[]
+  company_id  Int
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  posted_by   Int
+  postedBy    User     @relation("UserJobs", fields: [posted_by], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  applications Application[]
+}
+
+model Application {
+  id           Int       @id @default(autoincrement())
+  job_id       Int
+  candidate_id Int
+  status       Status    @default(applied)
+  applied_at   DateTime  @default(now())
+  job          Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  candidate    User      @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+}
+
+enum Status {
+  applied
+  reviewed
+  accepted
+  rejected
+}

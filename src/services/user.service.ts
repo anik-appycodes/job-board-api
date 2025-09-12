@@ -1,33 +1,29 @@
 import { userRepo } from "../repo/user.repo.js";
-import type { NewUserInput, User } from "../types/models/user.model.js";
+import type { User, Prisma } from "@prisma/client";
 
 async function getAllUsers(): Promise<User[]> {
-  const result = await userRepo.getAll();
-  return result.rows;
+  return userRepo.getAll();
 }
 
 async function getUserById(id: number): Promise<User | null> {
-  const result = await userRepo.getById(id);
-  return result.rows[0] ?? null;
+  return userRepo.getById(id);
 }
 
-async function createUser(user: NewUserInput): Promise<User> {
-  const result = await userRepo.create(user as User);
-  return result.rows[0] as User;
+async function createUser(user: Prisma.UserCreateInput): Promise<User> {
+  return userRepo.create(user);
 }
 
 async function updateUser(
   id: number,
-  user: Partial<User>
+  user: Prisma.UserUpdateInput
 ): Promise<User | null> {
-  const result = await userRepo.update(id, user);
-  return result.rows[0] ?? null;
+  return userRepo.update(id, user);
 }
 
 async function deleteUser(id: number): Promise<User | null> {
-  const result = await userRepo.remove(id);
-  return result.rows[0] ?? null;
+  return userRepo.remove(id);
 }
+
 export const userService = {
   getAllUsers,
   getUserById,
