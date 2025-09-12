@@ -12,12 +12,12 @@ export class AppError extends Error {
   }
 }
 
-export function errorHandler(
+export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
-) {
+  _next: NextFunction
+) => {
   console.error("❌ Error:", err);
 
   if (err instanceof AppError) {
@@ -25,11 +25,13 @@ export function errorHandler(
       success: false,
       message: err.message,
       details: err.details ?? null,
+      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
     });
   }
 
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
     message: "Internal Server Error",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
-}
+};

@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
 import { userService } from "../services/user.service.js";
 import { AppError } from "../middlewares/error.middleware.js";
-import { catchAsync } from "../helpers/api.helper.js";
+import { catchAsync, sendResponse } from "../helpers/api.helper.js";
 import type { Prisma } from "@prisma/client";
 
-export const getUsers = catchAsync(async (req: Request, res: Response) => {
+export const getUsers = catchAsync(async (_req: Request, res: Response) => {
   const users = await userService.getAllUsers();
-  res.json({ success: true, data: users });
+  return sendResponse(res, 200, "Users fetched successfully", users);
 });
 
 export const getUserById = catchAsync(async (req: Request, res: Response) => {
@@ -16,11 +16,12 @@ export const getUserById = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(Number(id));
   if (!user) throw new AppError("User not found", 404);
 
-  res.json({ success: true, data: user });
+  return sendResponse(res, 200, "User fetched successfully", user);
 });
 
 export const addUser = catchAsync(async (req: Request, res: Response) => {
   const { name, email, role, company_id } = req.body;
+
   if (!name || !email || !role) {
     throw new AppError("Missing required fields", 400);
   }
@@ -32,7 +33,7 @@ export const addUser = catchAsync(async (req: Request, res: Response) => {
     company: company_id ? { connect: { id: company_id } } : undefined,
   } as Prisma.UserCreateInput);
 
-  res.status(201).json({ success: true, data: newUser });
+  return sendResponse(res, 201, "User created successfully", newUser);
 });
 
 export const updateUser = catchAsync(async (req: Request, res: Response) => {
@@ -40,7 +41,6 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
   if (!id) throw new AppError("User ID is required", 400);
 
   const { name, email, role, company_id } = req.body;
-
   if (!name && !email && !role && !company_id) {
     throw new AppError("At least one field is required to update", 400);
   }
@@ -52,15 +52,9 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
     company: company_id ? { connect: { id: company_id } } : undefined,
   } as Prisma.UserUpdateInput);
 
-  if (!updatedUser) {
-    throw new AppError("User not found", 404);
-  }
+  if (!updatedUser) throw new AppError("User not found", 404);
 
-  res.status(200).json({
-    success: true,
-    message: "User updated successfully",
-    data: updatedUser,
-  });
+  return sendResponse(res, 200, "User updated successfully", updatedUser);
 });
 
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
@@ -68,13 +62,8 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
   if (!id) throw new AppError("User ID is required", 400);
 
   const deletedUser = await userService.deleteUser(Number(id));
-  if (!deletedUser) {
+  if (!deletedUser)
     throw new AppError("User not found or already deleted", 404);
-  }
 
-  res.status(200).json({
-    success: true,
-    message: "User deleted successfully",
-    data: deletedUser,
-  });
+  return sendResponse(res, 200, "User deleted successfully", deletedUser);
 });
