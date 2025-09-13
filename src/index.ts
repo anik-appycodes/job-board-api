@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/user.routes.js";
 import companyRoutes from "./routes/company.routes.js";
 import jobRoutes from "./routes/job.routes.js";
+import applicationRoutes from "./routes/application.routes.js";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/applications", applicationRoutes);
 
 // Server
 const port = process.env.PORT || 3000;
