@@ -38,7 +38,13 @@ export const addUser = catchAsync(async (req: Request, res: Response) => {
 
 export const updateUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const authUser = (req as any).user as { id: number };
+
   if (!id) throw new AppError("User ID is required", 400);
+
+  if (authUser.id !== Number(id)) {
+    throw new AppError("You can only update your own profile", 403);
+  }
 
   const { name, email, role, company_id } = req.body;
   if (!name && !email && !role && !company_id) {
@@ -59,7 +65,13 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
 
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const authUser = (req as any).user as { id: number };
+
   if (!id) throw new AppError("User ID is required", 400);
+
+  if (authUser.id !== Number(id)) {
+    throw new AppError("You can only delete your own profile", 403);
+  }
 
   const deletedUser = await userService.deleteUser(Number(id));
   if (!deletedUser)

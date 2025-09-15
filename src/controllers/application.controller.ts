@@ -1,9 +1,9 @@
+import { Prisma, Status } from "@prisma/client";
 import type { Request, Response } from "express";
 import { catchAsync, sendResponse } from "../helpers/api.helper.js";
 import { AppError } from "../middlewares/error.middleware.js";
 import { applicationService } from "../services/application.service.js";
-import { Prisma, Status } from "@prisma/client";
-import { userService } from "../services/user.service.js";
+import { jobService } from "../services/job.service.js";
 
 // GET /applications?candidate_id=...&job_id=...
 export const getApplications = catchAsync(
@@ -43,20 +43,26 @@ export const getApplicationById = catchAsync(
 
 export const addApplication = catchAsync(
   async (req: Request, res: Response) => {
-    const { job_id, candidate_id } = req.body;
+    const { job_id } = req.body;
+    const authUser = (req as any).user as { id: number; role: string };
 
-    if (!job_id || !candidate_id)
-      throw new AppError("job_id and candidate_id are required", 400);
+    if (authUser.role !== "candidate") {
+      throw new AppError("Only candidates can apply to jobs", 403);
+    }
 
-    // Ensure the role = candidate
-    const candidate = await userService.getUserById(Number(candidate_id));
-    if (!candidate) throw new AppError("Candidate not found", 404);
-    if (candidate.role !== "candidate")
-      throw new AppError("Only users with candidate role can apply", 400);
+    if (!job_id) throw new AppError("job_id is required", 400);
+
+    const existing = await applicationService.getAllApplications({
+      job_id: Number(job_id),
+      candidate_id: authUser.id,
+    });
+    if (existing.length > 0) {
+      throw new AppError("You have already applied to this job", 400);
+    }
 
     const newApplication = await applicationService.createApplication({
-      job: { connect: { id: job_id } },
-      candidate: { connect: { id: candidate_id } },
+      job: { connect: { id: Number(job_id) } },
+      candidate: { connect: { id: authUser.id } },
     } as Prisma.ApplicationCreateInput);
 
     return sendResponse(
@@ -71,17 +77,38 @@ export const addApplication = catchAsync(
 export const updateApplication = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    if (!id) throw new AppError("Application ID is required", 400);
-
     const { status } = req.body;
-    if (!status || !Object.values(Status).includes(status))
+
+    if (!id) throw new AppError("Application ID is required", 400);
+    if (!status || !Object.values(Status).includes(status)) {
       throw new AppError("Valid status is required", 400);
+    }
+
+    const authUser = (req as any).user as { id: number; role: string };
+
+    const existing = await applicationService.getApplicationById(Number(id));
+    if (!existing) throw new AppError("Application not found", 404);
+
+    // Block updates if already finalized
+    if (["ACCEPTED", "REJECTED"].includes(existing.status)) {
+      throw new AppError(
+        "You cannot update an application that is already accepted or rejected",
+        400
+      );
+    }
+
+    // Only employer can update
+    const job = await jobService.getJobById(existing.job_id);
+    if (!job || job.posted_by !== authUser.id) {
+      throw new AppError(
+        "You can only update applications for your own jobs",
+        403
+      );
+    }
 
     const updated = await applicationService.updateApplication(Number(id), {
       status,
     });
-    if (!updated) throw new AppError("Application not found", 404);
-
     return sendResponse(res, 200, "Application updated successfully", updated);
   }
 );
@@ -91,10 +118,31 @@ export const deleteApplication = catchAsync(
     const { id } = req.params;
     if (!id) throw new AppError("Application ID is required", 400);
 
-    const deleted = await applicationService.deleteApplication(Number(id));
-    if (!deleted)
-      throw new AppError("Application not found or already deleted", 404);
+    const authUser = (req as any).user as { id: number; role: string };
 
+    const existing = await applicationService.getApplicationById(Number(id));
+    if (!existing) throw new AppError("Application not found", 404);
+
+    // Candidate can delete their own
+    if (
+      authUser.role === "candidate" &&
+      existing.candidate_id !== authUser.id
+    ) {
+      throw new AppError("You can only delete your own applications", 403);
+    }
+
+    // Employer can delete only if they own the job
+    if (authUser.role === "employer") {
+      const job = await jobService.getJobById(existing.job_id);
+      if (!job || job.posted_by !== authUser.id) {
+        throw new AppError(
+          "You can only delete applications for your own jobs",
+          403
+        );
+      }
+    }
+
+    const deleted = await applicationService.deleteApplication(Number(id));
     return sendResponse(res, 200, "Application deleted successfully", deleted);
   }
 );

@@ -18,7 +18,7 @@ const router = Router();
 router.get("/", requireAuth, getUsers);
 router.get("/:id", requireAuth, getUserById);
 
-router.post("/", requireAuth, validate(createUserSchema), addUser);
+router.post("/", validate(createUserSchema), addUser);
 router.put("/:id", requireAuth, validate(updateUserSchema), updateUser);
 router.delete("/:id", requireAuth, deleteUser);
 

@@ -64,11 +64,20 @@ export const addJob = catchAsync(async (req: Request, res: Response) => {
     salary_max,
     tags,
     company_id,
-    posted_by,
   } = req.body;
 
-  if (!title || !company_id || !posted_by) {
-    throw new AppError("Title, company_id and posted_by are required", 400);
+  const authUser = (req as any).user as {
+    id: number;
+    company_id: number | null;
+  };
+
+  if (!title || !company_id) {
+    throw new AppError("Title and company_id are required", 400);
+  }
+
+  // Ensure the employer is posting for their own company
+  if (authUser.company_id !== company_id) {
+    throw new AppError("You can only post jobs for your own company", 403);
   }
 
   const newJob = await jobService.createJob({
@@ -79,7 +88,7 @@ export const addJob = catchAsync(async (req: Request, res: Response) => {
     salary_max,
     tags,
     company: { connect: { id: company_id } },
-    postedBy: { connect: { id: posted_by } },
+    postedBy: { connect: { id: authUser.id } },
   } as Prisma.JobCreateInput);
 
   return sendResponse(res, 201, "Job created successfully", newJob);
@@ -87,11 +96,19 @@ export const addJob = catchAsync(async (req: Request, res: Response) => {
 
 export const updateJob = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const authUser = (req as any).user as { id: number };
+
   if (!id) throw new AppError("Job ID is required", 400);
+
+  // Ownership check
+  const existingJob = await jobService.getJobById(Number(id));
+  if (!existingJob) throw new AppError("Job not found", 404);
+  if (existingJob.posted_by !== authUser.id) {
+    throw new AppError("You can only update your own job postings", 403);
+  }
 
   const { title, description, location, salary_min, salary_max, tags } =
     req.body;
-
   if (
     !title &&
     !description &&
@@ -119,7 +136,16 @@ export const updateJob = catchAsync(async (req: Request, res: Response) => {
 
 export const deleteJob = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const authUser = (req as any).user as { id: number };
+
   if (!id) throw new AppError("Job ID is required", 400);
+
+  // Ownership check
+  const existingJob = await jobService.getJobById(Number(id));
+  if (!existingJob) throw new AppError("Job not found", 404);
+  if (existingJob.posted_by !== authUser.id) {
+    throw new AppError("You can only delete your own job postings", 403);
+  }
 
   const deleted = await jobService.deleteJob(Number(id));
   if (!deleted) throw new AppError("Job not found or already deleted", 404);

@@ -30,6 +30,7 @@ router.post(
 router.put(
   "/:id",
   requireAuth,
+  requireRole("employer"),
   validate(updateApplicationSchema),
   updateApplication
 );
