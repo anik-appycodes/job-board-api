@@ -11,13 +11,30 @@ import {
   createCompanySchema,
   updateCompanySchema,
 } from "../validations/company.validation.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
 router.get("/", getCompanies);
-router.post("/", validate(createCompanySchema), addCompany);
 router.get("/:id", getCompanyById);
-router.put("/:id", validate(updateCompanySchema), updateCompany);
-router.delete("/:id", deleteCompany);
+
+router.post(
+  "/",
+  requireAuth,
+  requireRole("employer"),
+  validate(createCompanySchema),
+  addCompany
+);
+
+router.put(
+  "/:id",
+  requireAuth,
+  requireRole("employer"),
+  validate(updateCompanySchema),
+  updateCompany
+);
+
+router.delete("/:id", requireAuth, requireRole("employer"), deleteCompany);
 
 export default router;

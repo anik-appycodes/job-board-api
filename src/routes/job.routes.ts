@@ -11,13 +11,30 @@ import {
   createJobSchema,
   updateJobSchema,
 } from "../validations/job.validation.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
 router.get("/", getJobs);
-router.post("/", validate(createJobSchema), addJob);
 router.get("/:id", getJobById);
-router.put("/:id", validate(updateJobSchema), updateJob);
-router.delete("/:id", deleteJob);
+
+router.post(
+  "/",
+  requireAuth,
+  requireRole("employer"),
+  validate(createJobSchema),
+  addJob
+);
+
+router.put(
+  "/:id",
+  requireAuth,
+  requireRole("employer"),
+  validate(updateJobSchema),
+  updateJob
+);
+
+router.delete("/:id", requireAuth, requireRole("employer"), deleteJob);
 
 export default router;

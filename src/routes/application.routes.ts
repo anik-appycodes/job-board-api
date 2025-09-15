@@ -11,13 +11,30 @@ import {
   createApplicationSchema,
   updateApplicationSchema,
 } from "../validations/application.validation.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-router.get("/", getApplications);
-router.get("/:id", getApplicationById);
-router.post("/", validate(createApplicationSchema), addApplication);
-router.put("/:id", validate(updateApplicationSchema), updateApplication);
-router.delete("/:id", deleteApplication);
+router.get("/", requireAuth, getApplications);
+router.get("/:id", requireAuth, getApplicationById);
+
+router.post(
+  "/",
+  requireAuth,
+  requireRole("candidate"),
+  validate(createApplicationSchema),
+  addApplication
+);
+
+router.put(
+  "/:id",
+  requireAuth,
+  requireRole("employer"),
+  validate(updateApplicationSchema),
+  updateApplication
+);
+
+router.delete("/:id", requireAuth, requireRole("employer"), deleteApplication);
 
 export default router;

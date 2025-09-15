@@ -11,13 +11,15 @@ import {
   createUserSchema,
   updateUserSchema,
 } from "../validations/user.validation.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.get("/", getUsers);
-router.post("/", validate(createUserSchema), addUser);
-router.get("/:id", getUserById);
-router.put("/:id", validate(updateUserSchema), updateUser);
-router.delete("/:id", deleteUser);
+router.get("/", requireAuth, getUsers);
+router.get("/:id", requireAuth, getUserById);
+
+router.post("/", requireAuth, validate(createUserSchema), addUser);
+router.put("/:id", requireAuth, validate(updateUserSchema), updateUser);
+router.delete("/:id", requireAuth, deleteUser);
 
 export default router;
