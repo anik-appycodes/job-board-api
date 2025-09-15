@@ -30,11 +30,11 @@ router.post(
 router.put(
   "/:id",
   requireAuth,
-  requireRole("employer"),
+  requireRole("candidate"),
   validate(updateApplicationSchema),
   updateApplication
 );
 
-router.delete("/:id", requireAuth, requireRole("employer"), deleteApplication);
+router.delete("/:id", requireAuth, requireRole("candidate"), deleteApplication);
 
 export default router;
