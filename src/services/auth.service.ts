@@ -1,7 +1,7 @@
 import { app } from "../configs/firebase.js";
-import prisma from "../configs/prisma.js";
 import { Role } from "@prisma/client";
 import { getAuth } from "firebase-admin/auth";
+import { authRepo } from "../repo/auth.repo.js";
 
 const auth = getAuth(app);
 
@@ -25,15 +25,13 @@ async function signupWithEmail(
     });
   }
 
-  let user = await prisma.user.findUnique({ where: { email } });
+  let user = await authRepo.getByEmail(email);
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        role,
-        company: company_id ? { connect: { id: company_id } } : undefined,
-      },
+    user = await authRepo.create({
+      name,
+      email,
+      role,
+      company: company_id ? { connect: { id: company_id } } : undefined,
     });
   }
 
@@ -56,15 +54,13 @@ async function loginWithEmail(email: string, password: string) {
     throw new Error(data.error.message);
   }
 
-  let user = await prisma.user.findUnique({ where: { email } });
+  let user = await authRepo.getByEmail(email);
   if (!user) {
     const fbUser = await auth.getUser(data.localId);
-    user = await prisma.user.create({
-      data: {
-        name: fbUser.displayName ?? "Unknown",
-        email: fbUser.email!,
-        role: "candidate",
-      },
+    user = await authRepo.create({
+      name: fbUser.displayName ?? "Unknown",
+      email: fbUser.email!,
+      role: "candidate",
     });
   }
 
