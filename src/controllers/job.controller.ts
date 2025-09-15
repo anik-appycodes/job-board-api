@@ -1,11 +1,11 @@
+import { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
-import { catchAsync, sendResponse } from "../helpers/api.helper.js";
+import { sendResponse } from "../helpers/api.helper.js";
 import { AppError } from "../middlewares/error.middleware.js";
 import { jobService } from "../services/job.service.js";
-import { Prisma } from "@prisma/client";
 
 // GET /jobs?location=&company_id=&minSalary=&maxSalary=&tags=tag1,tag2
-export const getJobs = catchAsync(async (req: Request, res: Response) => {
+export const getJobs = async (req: Request, res: Response) => {
   const {
     location,
     company_id,
@@ -43,9 +43,9 @@ export const getJobs = catchAsync(async (req: Request, res: Response) => {
     take
   );
   return sendResponse(res, 200, "Jobs fetched successfully", jobs);
-});
+};
 
-export const getJobById = catchAsync(async (req: Request, res: Response) => {
+export const getJobById = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id) throw new AppError("Job ID is required", 400);
 
@@ -53,9 +53,9 @@ export const getJobById = catchAsync(async (req: Request, res: Response) => {
   if (!job) throw new AppError("Job not found", 404);
 
   return sendResponse(res, 200, "Job fetched successfully", job);
-});
+};
 
-export const addJob = catchAsync(async (req: Request, res: Response) => {
+export const addJob = async (req: Request, res: Response) => {
   const {
     title,
     description,
@@ -66,17 +66,14 @@ export const addJob = catchAsync(async (req: Request, res: Response) => {
     company_id,
   } = req.body;
 
-  const authUser = (req as any).user as {
-    id: number;
-    company_id: number | null;
-  };
+  const authUser = req?.user;
 
   if (!title || !company_id) {
     throw new AppError("Title and company_id are required", 400);
   }
 
   // Ensure the employer is posting for their own company
-  if (authUser.company_id !== company_id) {
+  if (authUser && authUser?.company_id !== company_id) {
     throw new AppError("You can only post jobs for your own company", 403);
   }
 
@@ -88,22 +85,22 @@ export const addJob = catchAsync(async (req: Request, res: Response) => {
     salary_max,
     tags,
     company: { connect: { id: company_id } },
-    postedBy: { connect: { id: authUser.id } },
+    postedBy: { connect: { id: authUser?.id } },
   } as Prisma.JobCreateInput);
 
   return sendResponse(res, 201, "Job created successfully", newJob);
-});
+};
 
-export const updateJob = catchAsync(async (req: Request, res: Response) => {
+export const updateJob = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const authUser = (req as any).user as { id: number };
+  const authUser = req?.user;
 
   if (!id) throw new AppError("Job ID is required", 400);
 
   // Ownership check
   const existingJob = await jobService.getJobById(Number(id));
   if (!existingJob) throw new AppError("Job not found", 404);
-  if (existingJob.posted_by !== authUser.id) {
+  if (existingJob.posted_by !== authUser?.id) {
     throw new AppError("You can only update your own job postings", 403);
   }
 
@@ -132,18 +129,18 @@ export const updateJob = catchAsync(async (req: Request, res: Response) => {
   if (!updated) throw new AppError("Job not found", 404);
 
   return sendResponse(res, 200, "Job updated successfully", updated);
-});
+};
 
-export const deleteJob = catchAsync(async (req: Request, res: Response) => {
+export const deleteJob = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const authUser = (req as any).user as { id: number };
+  const authUser = req?.user;
 
   if (!id) throw new AppError("Job ID is required", 400);
 
   // Ownership check
   const existingJob = await jobService.getJobById(Number(id));
   if (!existingJob) throw new AppError("Job not found", 404);
-  if (existingJob.posted_by !== authUser.id) {
+  if (existingJob.posted_by !== authUser?.id) {
     throw new AppError("You can only delete your own job postings", 403);
   }
 
@@ -151,4 +148,4 @@ export const deleteJob = catchAsync(async (req: Request, res: Response) => {
   if (!deleted) throw new AppError("Job not found or already deleted", 404);
 
   return sendResponse(res, 200, "Job deleted successfully", deleted);
-});
+};

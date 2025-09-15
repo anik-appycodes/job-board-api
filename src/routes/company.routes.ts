@@ -1,40 +1,42 @@
+import { Role } from "@prisma/client";
 import { Router } from "express";
 import {
-  getCompanies,
   addCompany,
+  deleteCompany,
+  getCompanies,
   getCompanyById,
   updateCompany,
-  deleteCompany,
 } from "../controllers/company.controller.js";
+import { catchAsync } from "../helpers/api.helper.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
   createCompanySchema,
   updateCompanySchema,
 } from "../validations/company.validation.js";
-import { requireAuth } from "../middlewares/auth.middleware.js";
-import { requireRole } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-router.get("/", getCompanies);
-router.get("/:id", getCompanyById);
+router.use(requireAuth);
+
+router.get("/", catchAsync(getCompanies));
+router.get("/:id", catchAsync(getCompanyById));
 
 router.post(
   "/",
-  requireAuth,
-  requireRole("employer"),
+  requireRole(Role.employer),
   validate(createCompanySchema),
-  addCompany
+  catchAsync(addCompany)
 );
 
 router.put(
   "/:id",
-  requireAuth,
-  requireRole("employer"),
+  requireRole(Role.employer),
   validate(updateCompanySchema),
-  updateCompany
+  catchAsync(updateCompany)
 );
 
-router.delete("/:id", requireAuth, requireRole("employer"), deleteCompany);
+router.delete("/:id", requireRole(Role.employer), catchAsync(deleteCompany));
 
 export default router;

@@ -1,40 +1,42 @@
+import { Role } from "@prisma/client";
 import { Router } from "express";
 import {
-  getJobs,
   addJob,
-  getJobById,
-  updateJob,
   deleteJob,
+  getJobById,
+  getJobs,
+  updateJob,
 } from "../controllers/job.controller.js";
+import { catchAsync } from "../helpers/api.helper.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
   createJobSchema,
   updateJobSchema,
 } from "../validations/job.validation.js";
-import { requireAuth } from "../middlewares/auth.middleware.js";
-import { requireRole } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-router.get("/", getJobs);
-router.get("/:id", getJobById);
+router.use(requireAuth);
+
+router.get("/", catchAsync(getJobs));
+router.get("/:id", catchAsync(getJobById));
 
 router.post(
   "/",
-  requireAuth,
-  requireRole("employer"),
+  requireRole(Role.employer),
   validate(createJobSchema),
-  addJob
+  catchAsync(addJob)
 );
 
 router.put(
   "/:id",
-  requireAuth,
-  requireRole("employer"),
+  requireRole(Role.employer),
   validate(updateJobSchema),
-  updateJob
+  catchAsync(updateJob)
 );
 
-router.delete("/:id", requireAuth, requireRole("employer"), deleteJob);
+router.delete("/:id", requireRole(Role.employer), catchAsync(deleteJob));
 
 export default router;

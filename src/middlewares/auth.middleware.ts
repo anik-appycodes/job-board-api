@@ -33,3 +33,22 @@ export async function requireAuth(
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
+
+// export async requireAuthorization(
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) {
+//   const authUser = (req as any).user;
+//   const { id } = req.params;
+
+//   if (!authUser) {
+//     return res.status(401).json({ message: "Unauthorized" });
+//   }
+
+//   if (Number(id) !== authUser.id) {
+//     return res.status(403).json({ message: "Forbidden" });
+//   }
+
+//   next();
+// }

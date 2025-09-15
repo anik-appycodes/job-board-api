@@ -1,11 +1,11 @@
-import type { Request, Response } from "express";
-import { catchAsync, sendResponse } from "../helpers/api.helper.js";
-import { AppError } from "../middlewares/error.middleware.js";
-import { companyService } from "../services/company.service.js";
 import { Prisma } from "@prisma/client";
+import type { Request, Response } from "express";
+import { sendResponse } from "../helpers/api.helper.js";
+import { AppError } from "../middlewares/error.middleware.js";
 import { userRepo } from "../repo/user.repo.js";
+import { companyService } from "../services/company.service.js";
 
-export const getCompanies = catchAsync(async (req: Request, res: Response) => {
+export const getCompanies = async (req: Request, res: Response) => {
   const { name, location } = req.query;
 
   const query: any = {};
@@ -15,32 +15,27 @@ export const getCompanies = catchAsync(async (req: Request, res: Response) => {
 
   const companies = await companyService.getAllCompanies(query);
   return sendResponse(res, 200, "Companies fetched successfully", companies);
-});
+};
 
-export const getCompanyById = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    if (!id) throw new AppError("Company ID is required", 400);
+export const getCompanyById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id) throw new AppError("Company ID is required", 400);
 
-    const company = await companyService.getCompanyById(Number(id));
-    if (!company) throw new AppError("Company not found", 404);
+  const company = await companyService.getCompanyById(Number(id));
+  if (!company) throw new AppError("Company not found", 404);
 
-    return sendResponse(res, 200, "Company fetched successfully", company);
-  }
-);
+  return sendResponse(res, 200, "Company fetched successfully", company);
+};
 
-export const addCompany = catchAsync(async (req: Request, res: Response) => {
+export const addCompany = async (req: Request, res: Response) => {
   const { name, description, location } = req.body;
-  const authUser = (req as any).user as {
-    id: number;
-    company_id: number | null;
-  };
+  const authUser = req?.user;
 
   if (!name) {
     throw new AppError("Company name is required", 400);
   }
 
-  if (authUser.company_id) {
+  if (authUser && authUser.company_id) {
     throw new AppError("You are already linked to a company", 403);
   }
 
@@ -51,24 +46,21 @@ export const addCompany = catchAsync(async (req: Request, res: Response) => {
   } as Prisma.CompanyCreateInput);
 
   // Link this company to the employer
-  await userRepo.update(authUser.id, {
+  await userRepo.update(Number(authUser?.id), {
     company: { connect: { id: newCompany.id } },
   });
 
   return sendResponse(res, 201, "Company created successfully", newCompany);
-});
+};
 
-export const updateCompany = catchAsync(async (req: Request, res: Response) => {
+export const updateCompany = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const authUser = (req as any).user as {
-    id: number;
-    company_id: number | null;
-  };
+  const authUser = req?.user;
 
   if (!id) throw new AppError("Company ID is required", 400);
 
   // Ownership check
-  if (authUser.company_id !== Number(id)) {
+  if (authUser && authUser.company_id !== Number(id)) {
     throw new AppError("You can only update your own company", 403);
   }
 
@@ -86,19 +78,16 @@ export const updateCompany = catchAsync(async (req: Request, res: Response) => {
   if (!updated) throw new AppError("Company not found", 404);
 
   return sendResponse(res, 200, "Company updated successfully", updated);
-});
+};
 
-export const deleteCompany = catchAsync(async (req: Request, res: Response) => {
+export const deleteCompany = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const authUser = (req as any).user as {
-    id: number;
-    company_id: number | null;
-  };
+  const authUser = req?.user;
 
   if (!id) throw new AppError("Company ID is required", 400);
 
   // Ownership check
-  if (authUser.company_id !== Number(id)) {
+  if (authUser && authUser.company_id !== Number(id)) {
     throw new AppError("You can only delete your own company", 403);
   }
 
@@ -106,9 +95,9 @@ export const deleteCompany = catchAsync(async (req: Request, res: Response) => {
   if (!deleted) throw new AppError("Company not found or already deleted", 404);
 
   // Unlink company from employer
-  await userRepo.update(authUser.id, {
+  await userRepo.update(Number(authUser?.id), {
     company: { disconnect: true },
   });
 
   return sendResponse(res, 200, "Company deleted successfully", deleted);
-});
+};

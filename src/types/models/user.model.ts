@@ -1,3 +1,5 @@
+import { Role } from "@prisma/client";
+
 export interface User {
   id: number;
   name: string;
@@ -14,3 +16,11 @@ export type NewUserInput = {
   role: "candidate" | "employer";
   company_id?: number | null;
 };
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: { id: number; role: Role; company_id?: number | null };
+    }
+  }
+}
