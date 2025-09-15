@@ -67,4 +67,63 @@ async function loginWithEmail(email: string, password: string) {
   return { token: data.idToken, user };
 }
 
-export const authService = { signupWithEmail, loginWithEmail };
+async function loginWithGoogle(idToken: string, role: Role = "candidate") {
+  // 1. Verify Google ID token
+  const decoded = await auth.verifyIdToken(idToken);
+
+  const email = decoded.email!;
+  const name = decoded.name ?? "Unknown";
+
+  // 2. Check or create user
+  let user = await authRepo.getByEmail(email);
+  if (!user) {
+    user = await authRepo.create({
+      name,
+      email,
+      role,
+    });
+  }
+
+  // 3. Issue Firebase custom token
+  const customToken = await auth.createCustomToken(decoded.uid);
+
+  return { token: customToken, user };
+}
+
+async function signupWithGoogle(
+  idToken: string,
+  role: Role,
+  company_id?: number
+) {
+  // 1. Verify ID token from frontend
+  const decoded = await auth.verifyIdToken(idToken);
+
+  const email = decoded.email!;
+  const name = decoded.name ?? "Unknown";
+
+  // 2. Check if already exists
+  const existing = await authRepo.getByEmail(email);
+  if (existing) {
+    throw new Error("User already exists with this email");
+  }
+
+  // 3. Create user in Prisma
+  const user = await authRepo.create({
+    name,
+    email,
+    role,
+    company: company_id ? { connect: { id: company_id } } : undefined,
+  });
+
+  // 4. Issue custom token for Firebase sessions
+  const customToken = await auth.createCustomToken(decoded.uid);
+
+  return { token: customToken, user };
+}
+
+export const authService = {
+  signupWithEmail,
+  loginWithEmail,
+  loginWithGoogle,
+  signupWithGoogle,
+};
