@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { catchAsync, sendResponse } from "../helpers/api.helper.js";
 import { AppError } from "../middlewares/error.middleware.js";
-import * as jobService from "../services/job.service.js";
+import { jobService } from "../services/job.service.js";
 import { Prisma } from "@prisma/client";
 
 // GET /jobs?location=&company_id=&minSalary=&maxSalary=&tags=tag1,tag2

@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { catchAsync, sendResponse } from "../helpers/api.helper.js";
 import { AppError } from "../middlewares/error.middleware.js";
-import * as applicationService from "../services/application.service.js";
+import { applicationService } from "../services/application.service.js";
 import { Prisma, Status } from "@prisma/client";
 import { userService } from "../services/user.service.js";
 

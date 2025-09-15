@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { catchAsync, sendResponse } from "../helpers/api.helper.js";
 import { AppError } from "../middlewares/error.middleware.js";
-import * as companyService from "../services/company.service.js";
+import { companyService } from "../services/company.service.js";
 import { Prisma } from "@prisma/client";
 
 export const getCompanies = catchAsync(async (req: Request, res: Response) => {

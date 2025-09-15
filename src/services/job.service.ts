@@ -1,7 +1,7 @@
 import type { Job, Prisma } from "@prisma/client";
 import { jobRepo } from "../repo/job.repo.js";
 
-export function getAllJobs(
+async function getAllJobs(
   query: Prisma.JobWhereInput = {},
   orderBy?: Prisma.JobOrderByWithRelationInput,
   skip?: number,
@@ -10,21 +10,29 @@ export function getAllJobs(
   return jobRepo.getAll(query, orderBy, skip, take);
 }
 
-export function getJobById(id: number): Promise<Job | null> {
+async function getJobById(id: number): Promise<Job | null> {
   return jobRepo.getById(id);
 }
 
-export function createJob(data: Prisma.JobCreateInput): Promise<Job> {
+async function createJob(data: Prisma.JobCreateInput): Promise<Job> {
   return jobRepo.create(data);
 }
 
-export function updateJob(
+async function updateJob(
   id: number,
   data: Prisma.JobUpdateInput
 ): Promise<Job> {
   return jobRepo.update(id, data);
 }
 
-export function deleteJob(id: number): Promise<Job> {
+async function deleteJob(id: number): Promise<Job> {
   return jobRepo.remove(id);
 }
+
+export const jobService = {
+  getAllJobs,
+  getJobById,
+  createJob,
+  updateJob,
+  deleteJob,
+};
