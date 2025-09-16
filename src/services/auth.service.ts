@@ -34,27 +34,33 @@ async function signupWithEmail(
 }
 
 async function loginWithEmail(email: string, password: string) {
-  // Call Firebase REST API to authenticate
-  const resp = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, returnSecureToken: true }),
+  try {
+    const resp = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, returnSecureToken: true }),
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || "Firebase login failed");
     }
-  );
 
-  const data = await resp.json();
-  if (data.error) throw new Error(data.error.message);
+    const data = await resp.json();
 
-  // Check if user exists in Prisma DB
-  const user = await authRepo.getByEmail(email);
-  if (!user) {
-    throw new Error("User does not exist. Please signup first.");
+    // Ensure user exists in Prisma DB
+    const user = await authRepo.getByEmail(email);
+    if (!user) throw new Error("User does not exist. Please signup first.");
+
+    // Return idToken and refreshToken for long-term auth
+    return { token: data.idToken, refreshToken: data.refreshToken, user };
+  } catch (error) {
+    console.error("Login error:", error);
+    throw new Error("Failed to login with email");
   }
-
-  // Return Firebase token and user data
-  return { token: data.idToken, user };
 }
 
 async function loginWithGoogle(
