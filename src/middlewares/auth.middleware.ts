@@ -21,34 +21,25 @@ export async function requireAuth(
     // Attach decoded user + prisma user to req
     const user = await prisma.user.findUnique({
       where: { email: decoded.email! },
+      include: { role: true },
     });
-    if (!user) {
-      return res.status(401).json({ message: "User not found in database" });
+    if (!user || !user.role) {
+      return res
+        .status(401)
+        .json({ message: "User or role not found in database" });
     }
 
-    (req as any).user = user; // attach prisma user
+    req.user = {
+      id: user.id,
+      role: {
+        id: user.role.id,
+        name: user.role.name,
+      },
+      company_id: user.company_id,
+    }; // attach prisma user
 
     return next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
-
-// export async requireAuthorization(
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   const authUser = (req as any).user;
-//   const { id } = req.params;
-
-//   if (!authUser) {
-//     return res.status(401).json({ message: "Unauthorized" });
-//   }
-
-//   if (Number(id) !== authUser.id) {
-//     return res.status(403).json({ message: "Forbidden" });
-//   }
-
-//   next();
-// }
