@@ -9,7 +9,14 @@ async function create(user: Prisma.UserCreateInput): Promise<User> {
   return prisma.user.create({ data: user });
 }
 
+async function getRoleByName(roleName: string) {
+  const role = await prisma.role.findUnique({ where: { name: roleName } });
+  if (!role) throw new Error(`Role "${roleName}" does not exist`);
+  return role;
+}
+
 export const authRepo = {
   getByEmail,
   create,
+  getRoleByName,
 };

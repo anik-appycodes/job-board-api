@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
@@ -12,13 +12,9 @@
     "declaration": true,
     "declarationMap": true,
 
-    // Optional - if you want TS to error on unused things
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-
-    // Very important: let TS transform `.ts` to `.js` on-the-fly
+    // Allow running .ts files directly with ts-node
     "verbatimModuleSyntax": false,
     "isolatedModules": false
   },
-  "include": ["src"]
+  "include": ["src", "prisma"]
 }

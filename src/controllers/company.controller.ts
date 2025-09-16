@@ -5,6 +5,7 @@ import { AppError } from "../middlewares/error.middleware.js";
 import { userRepo } from "../repo/user.repo.js";
 import { companyService } from "../services/company.service.js";
 
+// GET /companies?name=...&location=...
 export const getCompanies = async (req: Request, res: Response) => {
   const { name, location } = req.query;
 
@@ -46,9 +47,10 @@ export const addCompany = async (req: Request, res: Response) => {
   } as Prisma.CompanyCreateInput);
 
   // Link this company to the employer
-  await userRepo.update(Number(authUser?.id), {
-    company: { connect: { id: newCompany.id } },
-  });
+  if (authUser)
+    await userRepo.update(Number(authUser.id), {
+      company: { connect: { id: newCompany.id } },
+    });
 
   return sendResponse(res, 201, "Company created successfully", newCompany);
 };
@@ -70,9 +72,9 @@ export const updateCompany = async (req: Request, res: Response) => {
   }
 
   const updated = await companyService.updateCompany(Number(id), {
-    name,
-    description,
-    location,
+    ...(name && { name }),
+    ...(description && { description }),
+    ...(location && { location }),
   });
 
   if (!updated) throw new AppError("Company not found", 404);
@@ -95,9 +97,10 @@ export const deleteCompany = async (req: Request, res: Response) => {
   if (!deleted) throw new AppError("Company not found or already deleted", 404);
 
   // Unlink company from employer
-  await userRepo.update(Number(authUser?.id), {
-    company: { disconnect: true },
-  });
+  if (authUser)
+    await userRepo.update(Number(authUser.id), {
+      company: { disconnect: true },
+    });
 
   return sendResponse(res, 200, "Company deleted successfully", deleted);
 };

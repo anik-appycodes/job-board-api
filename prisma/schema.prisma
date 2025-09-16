@@ -19,48 +19,68 @@ model Company {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  name        String
-  email       String    @unique
-  role        Role
-  company_id  Int?
-  company     Company?  @relation(fields: [company_id], references: [id], onDelete: SetNull)
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  jobs        Job[]     @relation("UserJobs")
-  applications Application[]
+  id            Int             @id @default(autoincrement())
+  name          String
+  email         String          @unique
+  role_id       Int
+  role          Role             @relation(fields: [role_id], references: [id], onDelete: Restrict)
+  company_id    Int?
+  company       Company?         @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  created_at    DateTime         @default(now())
+  updated_at    DateTime         @updatedAt
+  jobs          Job[]             @relation("UserJobs")
+  applications  Application[]
 }
 
-enum Role {
-  candidate
-  employer
+model Role {
+  id            Int               @id @default(autoincrement())
+  name          String             @unique      // e.g. "candidate", "employer", "admin"
+  users         User[]
+  permissions   RolePermission[]
+}
+
+model Permission {
+  id            Int               @id @default(autoincrement())
+  action        String             @unique       // e.g. "job:create", "job:update"
+  description   String?
+  roles         RolePermission[]
+}
+
+model RolePermission {
+  id             Int            @id @default(autoincrement())
+  role_id        Int
+  permission_id  Int
+  role           Role            @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission     Permission      @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
 }
 
 model Job {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  location    String?
-  salary_min  Int?
-  salary_max  Int?
-  tags        String[]
-  company_id  Int
-  company     Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  posted_by   Int
-  postedBy    User     @relation("UserJobs", fields: [posted_by], references: [id], onDelete: Cascade)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           Int         @id @default(autoincrement())
+  title        String
+  description  String?
+  location     String?
+  salary_min   Int?
+  salary_max   Int?
+  tags         String[]
+  company_id   Int
+  company      Company      @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  posted_by    Int
+  postedBy     User         @relation("UserJobs", fields: [posted_by], references: [id], onDelete: Cascade)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
   applications Application[]
 }
 
 model Application {
-  id           Int       @id @default(autoincrement())
-  job_id       Int
-  candidate_id Int
-  status       Status    @default(applied)
-  applied_at   DateTime  @default(now())
-  job          Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
-  candidate    User      @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  id            Int        @id @default(autoincrement())
+  job_id        Int
+  candidate_id  Int
+  status        Status      @default(applied)
+  applied_at    DateTime    @default(now())
+  job            Job         @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  candidate      User        @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 }
 
 enum Status {

@@ -1,4 +1,3 @@
-import { Role } from "@prisma/client";
 import { Router } from "express";
 import {
   addJob,
@@ -9,8 +8,8 @@ import {
 } from "../controllers/job.controller.js";
 import { catchAsync } from "../helpers/api.helper.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import { requireRole } from "../middlewares/role.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
+import { rbacMiddleware } from "../services/rbac.service.js";
 import {
   createJobSchema,
   updateJobSchema,
@@ -23,20 +22,11 @@ router.use(requireAuth);
 router.get("/", catchAsync(getJobs));
 router.get("/:id", catchAsync(getJobById));
 
-router.post(
-  "/",
-  requireRole(Role.employer),
-  validate(createJobSchema),
-  catchAsync(addJob)
-);
+// RBAC middleware to protect routes below
+router.use(rbacMiddleware());
 
-router.put(
-  "/:id",
-  requireRole(Role.employer),
-  validate(updateJobSchema),
-  catchAsync(updateJob)
-);
-
-router.delete("/:id", requireRole(Role.employer), catchAsync(deleteJob));
+router.post("/", validate(createJobSchema), catchAsync(addJob));
+router.put("/:id", validate(updateJobSchema), catchAsync(updateJob));
+router.delete("/:id", catchAsync(deleteJob));
 
 export default router;

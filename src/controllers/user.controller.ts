@@ -47,15 +47,16 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 
   const { name, email, role, company_id } = req.body;
+
   if (!name && !email && !role && !company_id) {
     throw new AppError("At least one field is required to update", 400);
   }
 
   const updatedUser = await userService.updateUser(Number(id), {
-    name,
-    email,
-    role,
-    company: company_id ? { connect: { id: company_id } } : undefined,
+    ...(name && { name }),
+    ...(email && { email }),
+    ...(role && { role }),
+    ...(company_id && { company: { connect: { id: company_id } } }),
   } as Prisma.UserUpdateInput);
 
   if (!updatedUser) throw new AppError("User not found", 404);

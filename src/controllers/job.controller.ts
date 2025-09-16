@@ -73,7 +73,7 @@ export const addJob = async (req: Request, res: Response) => {
   }
 
   // Ensure the employer is posting for their own company
-  if (authUser && authUser?.company_id !== company_id) {
+  if (authUser && authUser.company_id !== company_id) {
     throw new AppError("You can only post jobs for your own company", 403);
   }
 
@@ -106,6 +106,7 @@ export const updateJob = async (req: Request, res: Response) => {
 
   const { title, description, location, salary_min, salary_max, tags } =
     req.body;
+
   if (
     !title &&
     !description &&
@@ -118,15 +119,13 @@ export const updateJob = async (req: Request, res: Response) => {
   }
 
   const updated = await jobService.updateJob(Number(id), {
-    title,
-    description,
-    location,
-    salary_min,
-    salary_max,
-    tags,
+    ...(title && { title }),
+    ...(description && { description }),
+    ...(location && { location }),
+    ...(salary_min && { salary_min }),
+    ...(salary_max && { salary_max }),
+    ...(tags && { tags }),
   });
-
-  if (!updated) throw new AppError("Job not found", 404);
 
   return sendResponse(res, 200, "Job updated successfully", updated);
 };
