@@ -18,3 +18,25 @@ export const sendResponse = <T>(
     data: data ?? null,
   });
 };
+
+export function derivePermission(req: Request): string {
+  const methodToAction: Record<string, string> = {
+    POST: "create",
+    GET: "read",
+    PUT: "update",
+    PATCH: "update",
+    DELETE: "delete",
+  };
+
+  const action = methodToAction[req.method.toUpperCase()];
+  if (!action) throw new Error(`Unsupported HTTP method: ${req.method}`);
+
+  const parts = req.baseUrl.split("/").filter(Boolean);
+  if (parts.length === 0)
+    throw new Error("Cannot derive resource from request");
+
+  let resource = parts[parts.length - 1];
+  if (resource.endsWith("s")) resource = resource.slice(0, -1); // singular
+
+  return `${resource}:${action}`;
+}
