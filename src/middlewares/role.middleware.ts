@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 
 export function requireRole(role: Role) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
+    const user = req?.user;
 
     if (!user || user.role !== role) {
       return res
