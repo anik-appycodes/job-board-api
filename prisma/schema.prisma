@@ -26,6 +26,7 @@ model User {
   role          Role             @relation(fields: [role_id], references: [id], onDelete: Restrict)
   company_id    Int?
   company       Company?         @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  image_url     String?
   created_at    DateTime         @default(now())
   updated_at    DateTime         @updatedAt
   jobs          Job[]             @relation("UserJobs")
