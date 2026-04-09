@@ -3,7 +3,7 @@ import { applicationRepo } from "../repo/application.repo.js";
 
 async function getAllApplications(
   query: Prisma.ApplicationWhereInput = {},
-  orderBy?: Prisma.ApplicationOrderByWithRelationInput
+  orderBy?: Prisma.ApplicationOrderByWithRelationInput,
 ): Promise<Application[]> {
   return applicationRepo.getAll(query, orderBy);
 }
@@ -13,14 +13,14 @@ async function getApplicationById(id: number): Promise<Application | null> {
 }
 
 async function createApplication(
-  data: Prisma.ApplicationCreateInput
+  data: Prisma.ApplicationCreateInput,
 ): Promise<Application> {
   return applicationRepo.create(data);
 }
 
 async function updateApplication(
   id: number,
-  data: Prisma.ApplicationUpdateInput
+  data: Prisma.ApplicationUpdateInput,
 ): Promise<Application> {
   return applicationRepo.update(id, data);
 }

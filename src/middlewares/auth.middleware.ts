@@ -5,7 +5,7 @@ import prisma from "../configs/prisma.js";
 export async function requireAuth(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const authHeader = req.headers.authorization;
 

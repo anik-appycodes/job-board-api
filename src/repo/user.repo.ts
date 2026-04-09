@@ -3,7 +3,7 @@ import prisma from "../configs/prisma.js";
 
 async function getAll(
   query: Prisma.UserWhereInput = {},
-  orderBy?: Prisma.UserOrderByWithRelationInput
+  orderBy?: Prisma.UserOrderByWithRelationInput,
 ) {
   return prisma.user.findMany({
     where: query,

@@ -14,7 +14,7 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
     email,
     password,
     role,
-    company_id
+    company_id,
   );
 
   return sendResponse(res, 201, "Signup successful", result);

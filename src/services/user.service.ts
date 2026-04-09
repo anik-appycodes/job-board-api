@@ -15,7 +15,7 @@ async function createUser(user: Prisma.UserCreateInput): Promise<User> {
 
 async function updateUser(
   id: number,
-  user: Prisma.UserUpdateInput
+  user: Prisma.UserUpdateInput,
 ): Promise<User | null> {
   return userRepo.update(id, user);
 }

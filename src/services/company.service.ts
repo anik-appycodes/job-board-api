@@ -3,7 +3,7 @@ import { companyRepo } from "../repo/company.repo.js";
 
 async function getAllCompanies(
   query: Prisma.CompanyWhereInput = {},
-  orderBy?: Prisma.CompanyOrderByWithRelationInput
+  orderBy?: Prisma.CompanyOrderByWithRelationInput,
 ): Promise<Company[]> {
   return companyRepo.getAll(query, orderBy);
 }
@@ -13,14 +13,14 @@ async function getCompanyById(id: number): Promise<Company | null> {
 }
 
 async function createCompany(
-  data: Prisma.CompanyCreateInput
+  data: Prisma.CompanyCreateInput,
 ): Promise<Company> {
   return companyRepo.create(data);
 }
 
 async function updateCompany(
   id: number,
-  data: Prisma.CompanyUpdateInput
+  data: Prisma.CompanyUpdateInput,
 ): Promise<Company> {
   return companyRepo.update(id, data);
 }

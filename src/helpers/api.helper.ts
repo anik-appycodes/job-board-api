@@ -10,7 +10,7 @@ export const sendResponse = <T>(
   res: Response,
   statusCode: number,
   message: string,
-  data?: T
+  data?: T,
 ) => {
   return res.status(statusCode).json({
     success: true,

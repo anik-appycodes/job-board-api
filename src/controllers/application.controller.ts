@@ -18,7 +18,7 @@ export const getApplications = async (req: Request, res: Response) => {
     res,
     200,
     "Applications fetched successfully",
-    applications
+    applications,
   );
 };
 
@@ -33,7 +33,7 @@ export const getApplicationById = async (req: Request, res: Response) => {
     res,
     200,
     "Application fetched successfully",
-    application
+    application,
   );
 };
 
@@ -61,7 +61,7 @@ export const addApplication = async (req: Request, res: Response) => {
     res,
     201,
     "Application created successfully",
-    newApplication
+    newApplication,
   );
 };
 
@@ -80,7 +80,7 @@ export const updateApplication = async (req: Request, res: Response) => {
   if (["ACCEPTED", "REJECTED"].includes(existing.status)) {
     throw new AppError(
       "You cannot update an application that is already accepted or rejected",
-      400
+      400,
     );
   }
 
@@ -90,7 +90,7 @@ export const updateApplication = async (req: Request, res: Response) => {
   if (!job || job.posted_by !== authUser?.id) {
     throw new AppError(
       "You can only update applications for your own jobs",
-      403
+      403,
     );
   }
 
@@ -110,7 +110,7 @@ export const deleteApplication = async (req: Request, res: Response) => {
   if (["ACCEPTED", "REJECTED"].includes(existing.status)) {
     throw new AppError(
       "You cannot delete an application that is already accepted or rejected",
-      400
+      400,
     );
   }
 
@@ -131,6 +131,6 @@ export const deleteApplication = async (req: Request, res: Response) => {
 
   throw new AppError(
     "You do not have permission to delete this application",
-    403
+    403,
   );
 };

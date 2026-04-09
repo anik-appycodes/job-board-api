@@ -40,7 +40,7 @@ export const getJobs = async (req: Request, res: Response) => {
     query,
     { created_at: "desc" },
     skip,
-    take
+    take,
   );
   return sendResponse(res, 200, "Jobs fetched successfully", jobs);
 };

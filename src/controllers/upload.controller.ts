@@ -12,7 +12,7 @@ export async function uploadProfileImage(req: Request, res: Response) {
     const updatedUser = await uploadUserImage(
       user.id,
       req.file.buffer,
-      req.file.mimetype
+      req.file.mimetype,
     );
 
     res.json({ message: "Image uploaded successfully", user: updatedUser });

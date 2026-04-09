@@ -6,7 +6,7 @@ import prisma from "../configs/prisma.js";
 export async function uploadUserImage(
   userId: number,
   fileBuffer: Buffer,
-  mimeType: string
+  mimeType: string,
 ): Promise<User> {
   try {
     const base64 = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;

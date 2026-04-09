@@ -5,7 +5,7 @@ async function getAllJobs(
   query: Prisma.JobWhereInput = {},
   orderBy?: Prisma.JobOrderByWithRelationInput,
   skip?: number,
-  take?: number
+  take?: number,
 ): Promise<Job[]> {
   return jobRepo.getAll(query, orderBy, skip, take);
 }
@@ -20,7 +20,7 @@ async function createJob(data: Prisma.JobCreateInput): Promise<Job> {
 
 async function updateJob(
   id: number,
-  data: Prisma.JobUpdateInput
+  data: Prisma.JobUpdateInput,
 ): Promise<Job> {
   return jobRepo.update(id, data);
 }

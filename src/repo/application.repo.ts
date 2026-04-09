@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 
 async function getAll(
   query: Prisma.ApplicationWhereInput = {},
-  orderBy?: Prisma.ApplicationOrderByWithRelationInput
+  orderBy?: Prisma.ApplicationOrderByWithRelationInput,
 ) {
   return prisma.application.findMany({
     where: query,

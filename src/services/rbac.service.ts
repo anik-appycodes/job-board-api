@@ -21,7 +21,7 @@ export async function getUserWithPermissions(userId: number) {
 export function userHasPermission(user: User & any, action: string): boolean {
   if (!user?.role?.permissions) return false;
   return user.role.permissions.some(
-    (rp: any) => rp.permission.action === action
+    (rp: any) => rp.permission.action === action,
   );
 }
 

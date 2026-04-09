@@ -5,7 +5,7 @@ async function getAll(
   query: Prisma.JobWhereInput = {},
   orderBy?: Prisma.JobOrderByWithRelationInput,
   skip?: number,
-  take?: number
+  take?: number,
 ) {
   return prisma.job.findMany({
     where: query,

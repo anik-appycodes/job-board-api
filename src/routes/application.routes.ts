@@ -29,7 +29,7 @@ router.post("/", validate(createApplicationSchema), catchAsync(addApplication));
 router.put(
   "/:id",
   validate(updateApplicationSchema),
-  catchAsync(updateApplication)
+  catchAsync(updateApplication),
 );
 router.delete("/:id", catchAsync(deleteApplication));
 

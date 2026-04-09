@@ -43,7 +43,7 @@ async function main() {
 
   // Employer gets job management
   const employerPerms = allPermissions.filter((p) =>
-    ["job:create", "job:update", "job:delete"].includes(p.action)
+    ["job:create", "job:update", "job:delete"].includes(p.action),
   );
   for (const p of employerPerms) {
     await prisma.rolePermission.upsert({
@@ -57,7 +57,7 @@ async function main() {
 
   // Candidate gets application:create
   const candidatePerms = allPermissions.filter((p) =>
-    ["application:create"].includes(p.action)
+    ["application:create"].includes(p.action),
   );
   for (const p of candidatePerms) {
     await prisma.rolePermission.upsert({

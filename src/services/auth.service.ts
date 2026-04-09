@@ -9,7 +9,7 @@ async function signupWithEmail(
   email: string,
   password: string,
   roleName: string,
-  company_id?: number
+  company_id?: number,
 ) {
   const existingFbUser = await auth.getUserByEmail(email).catch(() => null);
 
@@ -41,7 +41,7 @@ async function loginWithEmail(email: string, password: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, returnSecureToken: true }),
-      }
+      },
     );
 
     if (!resp.ok) {
@@ -65,7 +65,7 @@ async function loginWithEmail(email: string, password: string) {
 
 async function loginWithGoogle(
   idToken: string,
-  roleName: string = "candidate"
+  roleName: string = "candidate",
 ) {
   const decoded = await auth.verifyIdToken(idToken);
   const email = decoded.email!;
@@ -88,7 +88,7 @@ async function loginWithGoogle(
 async function signupWithGoogle(
   idToken: string,
   roleName: string,
-  company_id?: number
+  company_id?: number,
 ) {
   const decoded = await auth.verifyIdToken(idToken);
   const email = decoded.email!;
